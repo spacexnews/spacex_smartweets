@@ -79,11 +79,6 @@ def searchTweets():
             # trigger a notification if match
             if any([tweet_triggers, reply_triggers]):
 
-                print(tweet.created_at)
-                print(tweet.full_text)
-                print('-'*20)
-                print()
-
                 # format and post tweet
                 tweet_url = formatTweetURL(person, tweet.id_str)
                 requests.post(url=keys['slack']['webhook'], 

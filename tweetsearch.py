@@ -54,7 +54,6 @@ def searchTweets():
 
     for person, userdat in people.items():
 
-        print(person)
 
         for tweet in api.GetUserTimeline(screen_name=person, include_rts=False):
 

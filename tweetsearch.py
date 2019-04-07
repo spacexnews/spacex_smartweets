@@ -2,7 +2,7 @@ import twitter, re, spacy, json, requests, time
 from datetime import datetime
 nlp = spacy.load('en')
 
-# configure frequency of tweet searches here
+# configure frequency of tweet searches here (in seconds)
 sleeptime = 60
 
 def parseTweet(tweetstring):

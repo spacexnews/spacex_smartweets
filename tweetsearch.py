@@ -136,3 +136,7 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
     log_file += f'{datetime.now().__str__()}\t\tcompleted search\n'
 
     closeSession(log_file, ' '.join(seen_tweets))
+    
+    
+# call the search
+searchTweets()

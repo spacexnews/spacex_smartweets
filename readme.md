@@ -1,3 +1,3 @@
 # SpaceX Smart-Tweets
 
-A simple tweet processor for automatically and intelligently sorting tweets related to SpaceX. Processed with NLTK.
+A simple tweet processor for automatically and intelligently sorting tweets related to SpaceX. 

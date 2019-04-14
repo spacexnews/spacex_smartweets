@@ -9,9 +9,10 @@ from nltk.corpus import wordnet
 lemma = WordNetLemmatizer()
 token = TweetTokenizer()
 
-keys = 'keys.json'
-seentweets = 'seen_tweets.txt'
-log = 'log.txt'
+spacexdir = '/home/starship/github/spacex_smartweets/'
+keys = spacexdir+'keys.json'
+seentweets = spacexdir+'seen_tweets.txt'
+log = spacexdir+'log.txt'
 
 # get authorization keys
 with open(keys, 'r') as infile:
@@ -81,10 +82,11 @@ testing = {'test','road', 'close', 'open', 'shut',
 
 spacex_mentions = {'@spacex'}
 nasa_mentions = {'@nasa', 'nasa'}
+elon_terms = {'mars', 'earth', 'space'}
 
 # People/tweets to track + their triggers
 people = {'@elonmusk':{'real_name':'Elon Musk',
-                       'triggers': starship|spacex|spacex_mentions|nasa_mentions,
+                       'triggers': starship|spacex|spacex_mentions|nasa_mentions|elon_terms,
                        'retweets': True,
                       },
           '@bocachicagal':{'real_name':'Mary',
@@ -106,7 +108,7 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
 
     for person, userdat in people.items():
 
-        for tweet in api.GetUserTimeline(screen_name=person, include_rts=userdat['retweets']):
+        for tweet in api.GetUserTimeline(screen_name=person, include_rts=userdat['retweets'], count=20):
 
             if tweet.id_str in seen_tweets:
                 continue

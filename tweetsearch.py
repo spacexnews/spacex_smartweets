@@ -10,7 +10,7 @@ lemma = WordNetLemmatizer()
 token = TweetTokenizer()
 
 spacexdir = '/home/starship/github/spacex_smartweets/'
-keys = spacexdir+'keys.json'
+keys = spacexdir+'.keys.json'
 seentweets = spacexdir+'seen_tweets.txt'
 log = spacexdir+'log.txt'
 

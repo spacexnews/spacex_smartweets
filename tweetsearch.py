@@ -67,34 +67,84 @@ def formatTweetURL(user, status_id):
 # instance Twitter-API
 api = twitter.Api(**keys['twitter'], tweet_mode='extended')
 
+
 # Tweet Triggers, Organized by "domain"
 starship = {'starship', 'hopper', 
             'starhopper', 'raptor', 
             'engine', 'tether', 'pad', 'rocket'}
 spacex = {'spacex', 'falcon', 'merlin', 
           'thrust', 'rocket', 'ton'}
-testing = {'test','road', 'close', 'open', 'shut',
-           'reopen', 'sheriff', 'vent', 'loud', 
-           'sound', 'site', 'launch', 'hover', 'hop',
-           'roar', 'rumble', 'lit', 'flash', 'flare',
-           'explosion', 'explode', 'visible', 'shut',
-           'block', 'roadblock', 'notam', 'tfr', 'tfrs'}
+bocachica = {'test','road', 'close', 'open', 'shut',
+             'reopen', 'sheriff', 'vent', 'loud', 
+             'sound', 'site', 'launch', 'hover', 'hop',
+             'roar', 'rumble', 'lit', 'flash', 'flare',
+             'explosion', 'explode', 'visible', 'shut',
+             'block', 'roadblock', 'notam', 'tfr', 'tfrs'}
+
+mcgregor = {'mcgregor', 'raptor', 'test', 'SN1', 'SN2', 'SN3', 'loud', '#spacextests', 'roar'}
 
 spacex_mentions = {'@spacex'}
-nasa_mentions = {'@nasa', 'nasa'}
-elon_terms = {'mars', 'earth', 'space'}
+nasa_mentions = {'@nasa', 'nasa'} 
 
 # People/tweets to track + their triggers
 people = {'@elonmusk':{'real_name':'Elon Musk',
-                       'triggers': starship|spacex|spacex_mentions|nasa_mentions|elon_terms,
+                       'triggers': starship|spacex|spacex_mentions|nasa_mentions,
                        'retweets': True,
+                       'replies': True,
+                       'bio': 'the one and only'
                       },
           '@bocachicagal':{'real_name':'Mary',
-                          'triggers': testing|starship,
-                           'retweets': False
-                         }
+                          'triggers': bocachica|starship,
+                           'retweets': False,
+                           'replies': True,
+                           'bio': 'posts updates on tests'
+                         },
+          '@RGVReagan': {'real_name': 'Mark Reagan',
+                         'triggers': spacex_mentions|starship,
+                          'retweets': True,
+                          'replies': True,
+                          'bio': 'journalist with @Brownsvillenews'},
+          '@SpacePadreIsle': {'real_name': 'Spadre',
+                              'triggers': spacex_mentions|starship|bocachica,
+                              'retweets': True,
+                              'replies': True,
+                              'bio': 'spadre surfing'},
+          '@SpaceX':{'real_name': 'Space Exploration Technologies',
+                     'triggers': set(),
+                     'retweets': True,
+                     'replies': True,
+                     'bio': 'the big one'},
+          '@austinbarnard45':{'real_name': 'Austin Barnard',
+                              'triggers': bocachica|starship,
+                              'retweets': False,
+                              'replies': False,
+                              'bio': 'Local who takes pictures and streams sometimes'},
+          '@bluemoondance74':{'real_name': 'Reagan Beck',
+                              'triggers': mcgregor|spacex,
+                              'retweets': False,
+                              'replies': True,
+                              'bio': 'Lives near McGregor test facility'},
+          '@SpaceXFleet': {'real_name': 'Fleet Updates',
+                           'triggers': set(),
+                           'retweets': True,
+                           'replies': True,
+                           'bio': 'Posts fleet updates'},
+          '@Teslarati': {'real_name': 'Teslarati',
+                           'triggers': spacex|starship|nasa|mcgregor,
+                           'retweets': True,
+                           'replies': True,
+                           'bio': 'News'},
+          '@Erdayastronaut':{'real_name': 'Tim Dodd',
+                             'triggers': spacex|starship,
+                             'retweets': False,
+                             'replies': True,
+                             'bio': 'Space blogger'},
+          '@SciGuySpace': {'real_name': 'Eric Berger',
+                             'triggers': spacex|{'starship'},
+                             'retweets': False,
+                             'replies': True,
+                             'bio': 'Senior Space Editor at Ars Technica'},
          }
-
 
 def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
         
@@ -110,15 +160,22 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
 
         for tweet in api.GetUserTimeline(screen_name=person, include_rts=userdat['retweets'], count=20):
 
-            if tweet.id_str in seen_tweets:
+            # skip seen tweets or those older than 30 mins (1800 secs)
+            now = datetime.now()
+            tweet_time = datetime.strptime(tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y')     
+            tweet_age = (now - tweet_time).seconds
+            if tweet.id_str in seen_tweets or tweet_age > 1800:
                 continue
 
             # gather variables for condition evaluations
             tweet_parsed = parseTweet(tweet.full_text)
-            try:
-                tweet_reply = api.GetStatus(tweet.in_reply_to_status_id).full_text if tweet.in_reply_to_status_id else ''
-                reply_to_parsed = parseTweet(tweet_reply)
-            except: # if reply is missing
+            if userdat['replies']:
+                try:
+                    tweet_reply = api.GetStatus(tweet.in_reply_to_status_id).full_text if tweet.in_reply_to_status_id else ''
+                    reply_to_parsed = parseTweet(tweet_reply)
+                except: # if reply is missing
+                    reply_to_parsed = set()
+            else:
                 reply_to_parsed = set()
 
             # conditions go here and evaled; ANY complete, true condition triggers the bot
@@ -126,8 +183,9 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
             reply_triggers = reply_to_parsed & userdat['triggers'] # if thread is under valid trigger
 
             # trigger a notification if match
-            if any([tweet_triggers, reply_triggers]):
-
+            # empty trigger sets are configured to match any tweets
+            if any([tweet_triggers, reply_triggers, not userdat['triggers']]):
+                
                 # format and post tweet
                 tweet_url = formatTweetURL(person, tweet.id_str)
                 requests.post(url=keys['slack']['webhook'], 
@@ -138,7 +196,6 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
     log_file += f'{datetime.now().__str__()}\t\tcompleted search\n'
 
     closeSession(log_file, ' '.join(seen_tweets))
-    
     
 # call the search
 searchTweets()

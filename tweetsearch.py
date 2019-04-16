@@ -130,7 +130,7 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                            'replies': True,
                            'bio': 'Posts fleet updates'},
           '@Teslarati': {'real_name': 'Teslarati',
-                           'triggers': spacex|starship|nasa|mcgregor,
+                           'triggers': spacex|starship|nasa_mentions|mcgregor,
                            'retweets': True,
                            'replies': True,
                            'bio': 'News'},
@@ -191,7 +191,7 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 requests.post(url=keys['slack']['webhook'], 
                              data=json.dumps({'text':tweet_url}))            
                 seen_tweets.append(tweet.id_str)
-                log_file += f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) | tweet triggers: {tweet_triggers} | reply triggers: {reply_triggers}\n'
+                log_file += f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) | tweet triggers: {tweet_triggers} | reply triggers: {reply_triggers} | tweet_age: {tweet_age}\n'
     
     log_file += f'{datetime.now().__str__()}\t\tcompleted search\n'
 

@@ -163,7 +163,7 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
             # skip seen tweets or those older than 30 mins (1800 secs)
             now = datetime.now()
             tweet_time = datetime.strptime(tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y')     
-            tweet_age = (now - tweet_time).seconds
+            tweet_age = (now - tweet_time).total_seconds()
             if tweet.id_str in seen_tweets or tweet_age > 1800:
                 continue
 

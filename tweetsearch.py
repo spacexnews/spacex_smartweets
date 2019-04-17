@@ -1,4 +1,4 @@
-import twitter, re, json, requests, time
+import twitter, re, json, requests, time, pytz
 from datetime import datetime
 
 # NLP tools
@@ -83,7 +83,7 @@ bocachica = {'test','road', 'close', 'open', 'shut',
 
 mcgregor = {'mcgregor', 'raptor', 'test', 'SN1', 'SN2', 'SN3', 'loud', '#spacextests', 'roar'}
 
-spacex_mentions = {'@spacex'}
+spacex_mentions = {'@spacex', '@elonmusk'}
 nasa_mentions = {'@nasa', 'nasa'} 
 
 # People/tweets to track + their triggers
@@ -130,7 +130,7 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                            'replies': True,
                            'bio': 'Posts fleet updates'},
           '@Teslarati': {'real_name': 'Teslarati',
-                           'triggers': spacex|starship|nasa_mentions|mcgregor,
+                           'triggers': spacex|starship|nasa_mentions|spacex_mentions|mcgregor,
                            'retweets': True,
                            'replies': True,
                            'bio': 'News'},
@@ -140,10 +140,15 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                              'replies': True,
                              'bio': 'Space blogger'},
           '@SciGuySpace': {'real_name': 'Eric Berger',
-                             'triggers': spacex|{'starship'},
+                             'triggers': spacex|spacex_mentions|{'starship'},
                              'retweets': False,
                              'replies': True,
                              'bio': 'Senior Space Editor at Ars Technica'},
+          '@NASA':{'real_name': 'NASA',
+                   'triggers': spacex_mentions|{'spacex'},
+                   'retweets': True,
+                   'replies': True,
+                   'bio':'it is nasa'},
          }
 
 def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
@@ -161,8 +166,8 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
         for tweet in api.GetUserTimeline(screen_name=person, include_rts=userdat['retweets'], count=20):
 
             # skip seen tweets or those older than 30 mins (1800 secs)
-            now = datetime.now()
-            tweet_time = datetime.strptime(tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y')     
+            now = datetime.now(tz=pytz.utc) 
+            tweet_time = datetime.strptime(tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y').replace(tzinfo=pytz.utc)	
             tweet_age = (now - tweet_time).total_seconds()
             if tweet.id_str in seen_tweets or tweet_age > 1800:
                 continue

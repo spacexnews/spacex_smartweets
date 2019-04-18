@@ -72,10 +72,18 @@ api = twitter.Api(**keys['twitter'], tweet_mode='extended')
 starship = {'starship', 'hopper', 
             'starhopper', 'raptor', 
             'tether'} 
-spacecraft = {'thrust', 'rocket', 'ton', 'pad', 'engine', 'fairing'}
-spacex_craft = {'falcon', 'merlin', 'SN1', 'SN2', 'SN3',
-                'ocisly', 'octagrabber', 'octograbber',
-                'jrti', 'droneship', 'starlink'}
+
+spacecraft = {'thrust', 'rocket', 'ton', 'pad', 'engine', 'fairing', 'booster'}
+spacexthings = {'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',
+                'jrti', 'droneship', 'starlink', '39a', '#ocisly', '#jrti', 'dragon'}
+boosters = {'b1055','b1057', 'b1052', 'b1053', 'b1047', 'b1048', 'b1053', 'b1051'}  
+raptors = {'sn1', 'sn2', 'sn3'}
+spacexthings |= boosters|raptors
+
+space = {'space', 'mars', 'orbit'}
+moon = {'moon', 'lunar'}
+space |= moon
+
 bocachica = {'test','road', 'close', 'open', 'shut',
              'reopen', 'sheriff', 'vent', 'loud', 
              'sound', 'site', 'launch', 'hover', 'hop',
@@ -85,12 +93,13 @@ bocachica = {'test','road', 'close', 'open', 'shut',
 
 mcgregor = {'mcgregor', 'raptor', 'test', 'loud', '#spacextests', 'roar'}
 
-spacex_mentions = {'@spacex', '@elonmusk'}
+spacex_mentions = {'@spacex', 'spacex'} 
+elon_mentions = {'@elonmusk'}
 nasa_mentions = {'@nasa', 'nasa'} 
 
 # People/tweets to track + their triggers
 people = {'@elonmusk':{'real_name':'Elon Musk',
-                       'triggers': starship|spacex_craft|spacecraft|spacex_mentions|nasa_mentions,
+                       'triggers': starship|spacexthings|spacecraft|space|spacex_mentions|nasa_mentions,
                        'retweets': True,
                        'replies': True,
                        'bio': 'the one and only'
@@ -102,14 +111,14 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                            'bio': 'posts updates on tests'
                          },
           '@RGVReagan': {'real_name': 'Mark Reagan',
-                         'triggers': spacex_mentions|starship,
+                         'triggers': spacex_mentions|starship|elon_mentions,
                           'retweets': True,
                           'replies': True,
                           'bio': 'journalist with @Brownsvillenews'},
           '@SpacePadreIsle': {'real_name': 'Spadre',
                               'triggers': spacex_mentions|starship|bocachica,
                               'retweets': True,
-                              'replies': True,
+                              'replies': False,
                               'bio': 'spadre surfing'},
           '@SpaceX':{'real_name': 'Space Exploration Technologies',
                      'triggers': set(),
@@ -122,35 +131,40 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                               'replies': False,
                               'bio': 'Local who takes pictures and streams sometimes'},
           '@bluemoondance74':{'real_name': 'Reagan Beck',
-                              'triggers': mcgregor|spacecraft|spacex_craft,
+                              'triggers': mcgregor|spacecraft|spacexthings,
                               'retweets': False,
                               'replies': True,
                               'bio': 'Lives near McGregor test facility'},
           '@SpaceXFleet': {'real_name': 'Fleet Updates',
-                           'triggers': spacex_craft|spacecraft, 
+                           'triggers': spacexthings|spacecraft, 
                            'retweets': False,
                            'replies': False,
                            'bio': 'Posts fleet updates'},
           '@Teslarati': {'real_name': 'Teslarati',
-                           'triggers': spacecraft|spacex_craft|starship|nasa_mentions|spacex_mentions|mcgregor,
+                           'triggers': spacecraft|spacexthings|starship|nasa_mentions|spacex_mentions|mcgregor|elon_mentions,
                            'retweets': True,
                            'replies': True,
                            'bio': 'News'},
           '@Erdayastronaut':{'real_name': 'Tim Dodd',
-                             'triggers': spacex_craft|starship,
+                             'triggers': spacexthings|starship,
                              'retweets': False,
                              'replies': True,
                              'bio': 'Space blogger'},
           '@SciGuySpace': {'real_name': 'Eric Berger',
-                             'triggers': spacex_craft|spacex_mentions|{'starship'},
+                             'triggers': spacexthings|spacex_mentions|elon_mentions|{'starship'},
                              'retweets': False,
                              'replies': True,
                              'bio': 'Senior Space Editor at Ars Technica'},
           '@NASA':{'real_name': 'NASA',
-                   'triggers': spacex_craft|spacex_mentions|{'spacex'},
+                   'triggers': spacexthings|spacex_mentions|elon_mentions,
                    'retweets': True,
                    'replies': True,
                    'bio':'it is nasa'},
+          '@JimBridenstine': {'real_name': 'Jim Bridenstine',
+                             'triggers': spacex_mentions|elon_mentions|starship|moon|spacexthings,
+                             'retweets': False,
+                             'replies': False,
+                             'bio': 'Administrator of NASA'}, 
          }
 
 def searchTweets(log_file=log_file, seen_tweets=seen_tweets):

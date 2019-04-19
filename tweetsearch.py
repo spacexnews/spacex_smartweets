@@ -7,7 +7,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import TweetTokenizer
 from nltk.corpus import wordnet
 lemma = WordNetLemmatizer()
-token = TweetTokenizer()
+tokenizer = nltk.word_tokenize # NB: splits off #s and @s; otherwise, use TweetTokenizer().tokenize 
 
 spacexdir = '/home/starship/github/spacex_smartweets/'
 keys = spacexdir+'.keys.json'
@@ -54,7 +54,7 @@ def parseTweet(tweetstring):
     Returns a set of lemmas.
     '''
     lemmas = set(lemma.lemmatize(w.lower(), get_wordnet_pos(w)) 
-                  for w in token.tokenize(tweetstring))
+                  for w in tokenizer(tweetstring))
     return lemmas
 
 
@@ -75,7 +75,7 @@ starship = {'starship', 'hopper',
 
 spacecraft = {'thrust', 'rocket', 'ton', 'pad', 'engine', 'fairing', 'booster'}
 spacexthings = {'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',
-                'jrti', 'droneship', 'starlink', '39a', '#ocisly', '#jrti', 'dragon'}
+                'jrti', 'droneship', 'starlink', '39a', 'dragon'}
 boosters = {'b1055','b1057', 'b1052', 'b1053', 'b1047', 'b1048', 'b1053', 'b1051'}  
 raptors = {'sn1', 'sn2', 'sn3'}
 spacexthings |= boosters|raptors
@@ -93,9 +93,9 @@ bocachica = {'test','road', 'close', 'open', 'shut',
 
 mcgregor = {'mcgregor', 'raptor', 'test', 'loud', '#spacextests', 'roar'}
 
-spacex_mentions = {'@spacex', 'spacex'} 
-elon_mentions = {'@elonmusk'}
-nasa_mentions = {'@nasa', 'nasa'} 
+spacex_mentions = {'spacex'} 
+elon_mentions = {'elonmusk'}
+nasa_mentions = {'nasa'} 
 
 # People/tweets to track + their triggers
 people = {'@elonmusk':{'real_name':'Elon Musk',

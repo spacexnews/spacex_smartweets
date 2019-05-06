@@ -1,4 +1,4 @@
-import twitter, re, json, requests, time, pytz
+import os, twitter, re, json, requests, time, pytz
 from datetime import datetime
 
 # NLP tools
@@ -9,10 +9,10 @@ from nltk.corpus import wordnet
 lemma = WordNetLemmatizer()
 tokenizer = nltk.word_tokenize # NB: splits off #s and @s; otherwise, use TweetTokenizer().tokenize 
 
-spacexdir = '/home/starship/github/spacex_smartweets/'
-keys = spacexdir+'keys.json'
-seentweets = spacexdir+'seen_tweets.txt'
-log = spacexdir+'log.txt'
+spacexdir = os.path.expanduser('~/github/spacex_smartweets/')
+keys = os.path.join(spacexdir, 'keys.json')
+seentweets = os.path.join(spacexdir, 'seen_tweets.txt')
+log = os.path.join(spacexdir,'log.txt')
 
 # get authorization keys
 with open(keys, 'r') as infile:
@@ -238,12 +238,13 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
             # empty trigger sets are configured to match any tweets
             if any([tweet_triggers, reply_triggers, not userdat['triggers']]):
                 
-                # format and post tweet
+                # format and ship tweet and data
                 tweet_url = formatTweetURL(person, tweet.id_str)
-                clean_text = re.split('https://t.co', tweet.full_text, maxsplit=1)[0].strip() # remove twitter image URLs to prevent Slack from double-formatting
-                tweet_text = f'{clean_text} {tweet_url}'
+                clean_text = re.split('https://t.co', tweet.full_text, maxsplit=1)[0].strip() # rm twitter URLs; prevents Slack from double-preview
+                person_name = tweet.user.name
+                send_text = f'{person_name}: {clean_text} {tweet_url}'
                 requests.post(url=keys['slack']['webhook'], 
-                             data=json.dumps({'text':tweet_text}))            
+                             data=json.dumps({'text':send_text}))            
                 seen_tweets.append(tweet.id_str)
                 log_file += f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) | tweet triggers: {tweet_triggers} | reply triggers: {reply_triggers} | tweet_age: {tweet_age}\n'
     

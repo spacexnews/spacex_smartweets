@@ -240,7 +240,8 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 
                 # format and post tweet
                 tweet_url = formatTweetURL(person, tweet.id_str)
-                tweet_text = f'{tweet.full_text} {tweet_url}'
+                clean_text = re.split('https://t.co', tweet.full_text, maxsplit=1)[0].strip() # remove twitter image URLs to prevent Slack from double-formatting
+                tweet_text = f'{clean_text} {tweet_url}'
                 requests.post(url=keys['slack']['webhook'], 
                              data=json.dumps({'text':tweet_text}))            
                 seen_tweets.append(tweet.id_str)

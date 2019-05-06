@@ -240,8 +240,9 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 
                 # format and post tweet
                 tweet_url = formatTweetURL(person, tweet.id_str)
+                tweet_text = f'{tweet.full_text} {tweet_url}'
                 requests.post(url=keys['slack']['webhook'], 
-                             data=json.dumps({'text':tweet_url}))            
+                             data=json.dumps({'text':tweet_text}))            
                 seen_tweets.append(tweet.id_str)
                 log_file += f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) | tweet triggers: {tweet_triggers} | reply triggers: {reply_triggers} | tweet_age: {tweet_age}\n'
     

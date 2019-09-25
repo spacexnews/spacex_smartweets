@@ -132,7 +132,7 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                               'replies': False,
                               'bio': 'Local who takes pictures and streams sometimes'},
           '@bluemoondance74':{'real_name': 'Reagan Beck',
-                              'triggers': {'#spacextests'} 
+                              'triggers': {'#spacextests'}, 
                               'retweets': False,
                               'replies': False,
                               'bio': 'Lives near McGregor test facility'},

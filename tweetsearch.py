@@ -69,18 +69,29 @@ api = twitter.Api(**keys['twitter'], tweet_mode='extended')
 
 
 # Tweet Triggers, Organized by "domain"
-starship = {'starship', 'hopper', 
-            'starhopper', 'raptor', 
-            'tether'} 
+starship = {
+    'starship', 'hopper', 
+    'starhopper', 'raptor', 
+    'tether', 'dome', 'weld', 'barrel',
+    'flight',
+} 
 
-spacecraft = {'thrust', 'rocket', 'ton', 'pad', 'engine', 'fairing', 'booster', 'crew'}
-spacexthings = {'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',
-                'jrti', 'droneship', 'starlink', '39a', 'dragon', 'draco', 'superdraco'}
+spacecraft = {
+    'thrust', 'rocket', 'ton', 
+    'pad', 'engine', 'fairing', 'booster', 'crew',
+}
+spacexthings = {
+    'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',
+    'jrti', 'droneship', 'starlink', '39a', 'dragon', 'draco', 'superdraco',
+}
 boosters = {'b1055','b1057', 'b1052', 'b1053', 'b1047', 'b1048', 'b1053', 'b1051'}  
 raptors = {'sn1', 'sn2', 'sn3'}
 spacexthings |= boosters|raptors
 
-space = {'space', 'mars', 'orbit'}
+space = {
+    'space', 'mars', 'orbit', 'orbital', 'flight', 
+    'crewed', 'bar'
+}
 moon = {'moon', 'lunar'}
 space |= moon
 
@@ -116,11 +127,11 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                           'retweets': False,
                           'replies': True,
                           'bio': 'journalist with @Brownsvillenews'},
-          '@SpacePadreIsle': {'real_name': 'Spadre',
-                              'triggers': spacex_mentions|starship|bocachica,
-                              'retweets': False,
-                              'replies': False,
-                              'bio': 'spadre surfing'},
+#          '@SpacePadreIsle': {'real_name': 'Spadre',
+#                              'triggers': spacex_mentions|starship|bocachica,
+#                              'retweets': False,
+#                              'replies': False,
+#                              'bio': 'spadre surfing'},
           '@SpaceX':{'real_name': 'Space Exploration Technologies',
                      'triggers': set(),
                      'retweets': False,

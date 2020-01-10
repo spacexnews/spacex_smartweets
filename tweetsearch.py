@@ -79,6 +79,7 @@ starship = {
 spacecraft = {
     'thrust', 'rocket', 'ton', 
     'pad', 'engine', 'fairing', 'booster', 'crew',
+    'propellant', 'CH4', 'turbopump'
 }
 spacexthings = {
     'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',

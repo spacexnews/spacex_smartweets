@@ -86,12 +86,12 @@ spacexthings = {
     'jrti', 'droneship', 'starlink', '39a', 'dragon', 'draco', 'superdraco',
 }
 boosters = {'b1055','b1057', 'b1052', 'b1053', 'b1047', 'b1048', 'b1053', 'b1051'}  
-raptors = {'sn1', 'sn2', 'sn3'}
-spacexthings |= boosters|raptors
+models = {'sn1', 'sn2', 'sn3', 'sn4', 'SN3', 'SN4', 'SN5', 'SN6'}
+spacexthings |= boosters|models
 
 space = {
     'space', 'mars', 'orbit', 'orbital', 'flight', 
-    'crewed', 'bar'
+    'crewed', 'bar', 'launch'
 }
 moon = {'moon', 'lunar'}
 space |= moon
@@ -128,11 +128,11 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                           'retweets': False,
                           'replies': True,
                           'bio': 'journalist with @Brownsvillenews'},
-#          '@SpacePadreIsle': {'real_name': 'Spadre',
-#                              'triggers': spacex_mentions|starship|bocachica,
-#                              'retweets': False,
-#                              'replies': False,
-#                              'bio': 'spadre surfing'},
+          '@SpacePadreIsle': {'real_name': 'Spadre',
+                              'triggers': spacex_mentions|starship|bocachica,
+                              'retweets': False,
+                              'replies': False,
+                              'bio': 'spadre surfing'},
           '@SpaceX':{'real_name': 'Space Exploration Technologies',
                      'triggers': set(),
                      'retweets': False,
@@ -144,7 +144,7 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                               'replies': False,
                               'bio': 'Local who takes pictures and streams sometimes'},
           '@bluemoondance74':{'real_name': 'Reagan Beck',
-                              'triggers': {'#spacextests'}, 
+                              'triggers': {'spacextests','#spacextests'}, 
                               'retweets': False,
                               'replies': False,
                               'bio': 'Lives near McGregor test facility'},
@@ -203,6 +203,11 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                          'retweets': False,
                          'replies': True,
                          'bio': 'Astronaut slated for DM-2'},
+          '@fael097': {'real_name': 'Rafael Adamy',
+                       'triggers': spacex_mentions|spacexthings,
+                       'retweets': False,
+                       'replies': False,
+                       'bio': 'builds SNX diagrams'},
          }
 
 def searchTweets(log_file=log_file, seen_tweets=seen_tweets):

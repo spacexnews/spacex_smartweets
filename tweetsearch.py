@@ -79,14 +79,15 @@ starship = {
 spacecraft = {
     'thrust', 'rocket', 'ton', 
     'pad', 'engine', 'fairing', 'booster', 'crew',
-    'propellant', 'CH4', 'turbopump'
+    'propellant', 'CH4', 'turbopump', 'nosecone',
+    'tank', 'flap',
 }
 spacexthings = {
     'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',
     'jrti', 'droneship', 'starlink', '39a', 'dragon', 'draco', 'superdraco',
 }
 boosters = {'b1055','b1057', 'b1052', 'b1053', 'b1047', 'b1048', 'b1053', 'b1051'}  
-models = {'sn1', 'sn2', 'sn3', 'sn4', 'SN3', 'SN4', 'SN5', 'SN6'}
+models = {'sn1', 'sn2', 'sn3', 'sn4', 'sn3', 'sn4', 'sn5', 'sn6', 'sn7', 'sn8'}
 spacexthings |= boosters|models
 
 space = {

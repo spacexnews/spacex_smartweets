@@ -73,7 +73,7 @@ starship = {
     'starship', 'hopper', 
     'starhopper', 'raptor', 
     'tether', 'dome', 'weld', 'barrel',
-    'flight',
+    'flight', '301', 'cryogenic', 'cryo',
 } 
 
 spacecraft = {
@@ -92,7 +92,7 @@ spacexthings |= boosters|models
 
 space = {
     'space', 'mars', 'orbit', 'orbital', 'flight', 
-    'crewed', 'bar', 'launch'
+    'crewed', 'bar', 'launch', 
 }
 moon = {'moon', 'lunar'}
 space |= moon

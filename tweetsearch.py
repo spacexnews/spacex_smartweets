@@ -338,7 +338,7 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 log_file += (
                     f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) '
                     f'| tweet matches: {tweet_match[0]} '
-                    f'| orig. tweet matches: {orig_match[0]} '
+                    f'| reply matches: {orig_match[0]} '
                     f'| tweet_age: {tweet_age}\n'
                 )
     

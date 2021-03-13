@@ -99,49 +99,48 @@ def formatTweetURL(user, status_id):
 # Terms support regex pattern matching
 # NB: all tweet strings are lowercased for matching
 starship = {
-    'starship', 'sn\d+', 'bn\d+', 'superheavy', 
-    'hopper', 'starhopper', 'raptor', 
-    'tether', 'dome', 'weld', 'barrel',
-    'flight', '301', 'cryogenic', 'cryo',
-    'bulkhead',
+    'starship', 'sn\d+', 'bn\d+', 
+    'superheavy', 'raptor', 'bellyflop'
+    'hopper', 
 } 
 
 bocachica = {
-    'launch', 'tower', 'crane',
     'bay', 'highbay', 'midbay',
-    'road', 'orbital', 'platform',
-    '🚀', 'boca', 'mount', 'starbase',
+    'boca', 'chica', 'starbase', 
 }
 
 starbase = starship | bocachica
 
 spacecraft = {
-    'thrust', 'rocket', 'ton', 
-    'pad', 'engine', 'fairing', 'booster', 'crew',
+    'thrust', 'rocket', 'isp', 
+    'pad', 'engine', 'fairing', 'booster', 
     'propellant', 'ch4', 'turbopump', 'nosecone',
     'tank', 'flap',
 }
 spacexthings = {
-    'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',
-    'jrti', 'droneship', 'starlink', '39a', 'dragon', 'draco', 'superdraco',
+    'falcon', 'merlin', 'ocisly', 'octagrabber', 
+    'octograbber', 'jrti', 'droneship', 'starlink', 
+    '39a', 'dragon', 'draco', 'superdraco',
 }
-missions = {'dearmoon', 'dear moon'}
+
+missions = {'dearmoon'}
+
 spacexthings |= missions
 
 space = {
     'space', 'mars', 'orbit', 'orbital', 'flight', 
-    'crewed', 'bar', 'launch', 
+    'crewed', 'launch', 'moon', 'lunar'
 }
-moon = {'moon', 'lunar'}
-space |= moon
 
-testing = {'test','road', 'close', 'open', 'shut',
-             'reopen', 'sheriff', 'vent', 'loud', 
-             'sound', 'site', 'launch', 'hover', 'hop',
-             'roar', 'rumble', 'lit', 'flash', 'flare',
-             'explosion', 'explode', 'visible', 'shut',
-             'block', 'roadblock', 'notam', 'tfr', 'tfrs',
-             'hangar', 'foundation'}
+testing = {
+    'test','road', 'close', 'open', 'shut',
+    'reopen', 'sheriff', 'vent', 'loud', 
+    'sound', 'site', 'launch', 'hover', 'hop',
+    'roar', 'rumble', 'lit', 'flash', 'flare',
+    'explosion', 'explode', 'visible', 'shut',
+    'block', 'roadblock', 'notam', 'tfr', 'tfrs',
+    'hangar', 'foundation'
+}
 
 mcgregor = {'mcgregor', 'raptor', 'test', 'loud', '#spacextests', 'roar'}
 

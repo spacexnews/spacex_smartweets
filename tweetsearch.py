@@ -27,50 +27,72 @@ with open(seentweets, 'r') as infile:
 with open(log, 'r') as infile:
     log_file = infile.read()
 
+# instance Twitter-API
+api = twitter.Api(**keys['twitter'], tweet_mode='extended')
+
 def closeSession(log_file, seen_tweets):
-    '''
-    Write final files.
-    '''
+    """Write final files."""
     with open(log, 'w') as outfile:
         outfile.write(log_file)
     with open(seentweets, 'w') as outfile:
         outfile.write(seen_tweets)
 
 def get_wordnet_pos(word):
-    '''
-    Map POS tag to first character lemmatize() accepts.
+    """ Map POS tag to first character lemmatize() accepts.
+
     Credit: https://www.machinelearningplus.com/nlp/lemmatization-examples-python/
     ^ which saved me some time from thinking through this...
-    '''
+    """
     tag = nltk.pos_tag([word])[0][1][0].upper()
-    tag_dict = {'J': wordnet.ADJ,
-                'N': wordnet.NOUN,
-                'V': wordnet.VERB,
-                'R': wordnet.ADV}
+    tag_dict = {
+        'J': wordnet.ADJ,
+        'N': wordnet.NOUN,
+        'V': wordnet.VERB,
+        'R': wordnet.ADV
+    }
     return tag_dict.get(tag, wordnet.NOUN)
 
+def lemmatizeTweet(tweetstring):
+    """Lemmatize and lowercase tweet text.
 
-def parseTweet(tweetstring):
-    '''
-    Lemmatize and lowercase tweet text.
     Returns a set of lemmas.
-    '''
-    lemmas = set(lemma.lemmatize(w.lower(), get_wordnet_pos(w)) 
-                  for w in tokenizer(tweetstring))
+    """
+    lower_words = [w.lower() for w in tokenizer(tweetstring)]
+    pos_words = [get_wordnet_pos(w) for w in lower_words]
+    lemmas = [
+        lemma.lemmatize(w, pos) 
+            for w, pos in zip(lower_words, pos_words)
+    ]
     return lemmas
 
+def matchTweet(tweet, match_terms):
+    """Match tweets using regex.
+
+    Args:
+        tweet: twitter Status object
+        match_terms: a set of terms to be 
+            joined on | for regex matching
+    Returns:
+        boolean on whether a match
+    """
+    if tweet is None:
+        return re.match('.', '') # empty match
+    tweet_lemmas = lemmatizeTweet(tweet.full_text)
+    tweet_str = ' '.join(tweet_lemmas)
+    match_pattern = '|'.join(match_terms)
+    re_match = re.match(
+        match_pattern,
+        tweet_str
+    )
+    return re_match
 
 def formatTweetURL(user, status_id):
-    '''
-    Returns formatted URL for tweets.
-    '''
+    """Returns formatted URL for tweets."""
     return f'https://twitter.com/{user}/status/{status_id}'
 
-# instance Twitter-API
-api = twitter.Api(**keys['twitter'], tweet_mode='extended')
-
-
 # Tweet Triggers, Organized by "domain"
+# Terms support regex pattern matching
+# NB: all tweet strings are lowercased for matching
 starship = {
     'starship', 'hopper', 'superheavy', 
     'starhopper', 'raptor', 
@@ -86,20 +108,21 @@ bocachica = {
     '🚀', 'boca', 'mount', 'starbase',
 }
 
+starbase = starship | bocachica
+
 spacecraft = {
     'thrust', 'rocket', 'ton', 
     'pad', 'engine', 'fairing', 'booster', 'crew',
-    'propellant', 'CH4', 'turbopump', 'nosecone',
+    'propellant', 'ch4', 'turbopump', 'nosecone',
     'tank', 'flap',
 }
 spacexthings = {
     'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',
     'jrti', 'droneship', 'starlink', '39a', 'dragon', 'draco', 'superdraco',
 }
-boosters = {'b1055','b1057', 'b1052', 'b1053', 'b1047', 'b1048', 'b1053', 'b1051'}  
-models = {'sn11', 'sn12', 'sn15', 'sn16', 'sn17', 'sn18', 'bn1', 'bn2'}
+models = {'sn\d+', 'bn\d+'}
 missions = {'dearmoon', 'dear moon'}
-spacexthings |= boosters|models|missions
+spacexthings |= models|missions
 
 space = {
     'space', 'mars', 'orbit', 'orbital', 'flight', 
@@ -123,114 +146,107 @@ elon_mentions = {'elonmusk'}
 nasa_mentions = {'nasa'} 
 
 # People/tweets to track + their triggers
-people = {'@elonmusk':{'real_name':'Elon Musk',
-                       'triggers': starship|spacexthings|spacecraft|space|spacex_mentions|nasa_mentions,
-                       'retweets': False,
-                       'replies': True,
-                       'bio': 'the one and only'
-                      },
-          '@bocachicagal':{'real_name':'Mary',
-                          'triggers': testing|starship,
-                           'retweets': False,
-                           'replies': False,
-                           'bio': 'posts updates on tests'
-                         },
-          '@RGVReagan': {'real_name': 'Mark Reagan',
-                         'triggers': spacex_mentions|starship|elon_mentions,
-                          'retweets': False,
-                          'replies': True,
-                          'bio': 'journalist with @Brownsvillenews'},
-          '@SpacePadreIsle': {'real_name': 'Spadre',
-                              'triggers': spacex_mentions|starship|testing|bocachica,
-                              'retweets': False,
-                              'replies': False,
-                              'bio': 'spadre surfing'},
-          '@SpaceX':{'real_name': 'Space Exploration Technologies',
-                     'triggers': set(),
-                     'retweets': False,
-                     'replies': True,
-                     'bio': 'the big one'},
-          '@austinbarnard45':{'real_name': 'Austin Barnard',
-                              'triggers': testing|starship,
-                              'retweets': False,
-                              'replies': False,
-                              'bio': 'Local who takes pictures and streams sometimes'},
-          '@bluemoondance74':{'real_name': 'Reagan Beck',
-                              'triggers': {'spacextests','#spacextests'}, 
-                              'retweets': False,
-                              'replies': False,
-                              'bio': 'Lives near McGregor test facility'},
-          '@Teslarati': {'real_name': 'Teslarati',
-                           'triggers': spacexthings|starship|nasa_mentions|spacex_mentions,
-                           'retweets': False,
-                           'replies': True,
-                           'bio': 'News'},
-          '@Erdayastronaut':{'real_name': 'Tim Dodd',
-                             'triggers': spacexthings|starship,
-                             'retweets': False,
-                             'replies': False,
-                             'bio': 'Space blogger'},
-          '@SciGuySpace': {'real_name': 'Eric Berger',
-                             'triggers': spacexthings|spacex_mentions|elon_mentions|{'starship'},
-                             'retweets': False,
-                             'replies': False,
-                             'bio': 'Senior Space Editor at Ars Technica'},
-          '@_brendan_lewis': {'real_name': 'Brendan',
-                              'triggers': spacex_mentions|starship|spacexthings,
-                              'retweets': False,
-                              'replies': False,
-                              'bio': 'Tweets diagrams'},
-          '@TrevorMahlmann': {'real_name': '',
-                          'triggers': spacex_mentions|starship|spacexthings|bocachica,
-                          'retweets': False,
-                          'replies': False,
-                          'bio': 'Tweets photos'},
-          '@ErcXspace': {'real_name': '',
-                          'triggers': spacex_mentions|starship|spacexthings|bocachica,
-                          'retweets': False,
-                          'replies': False,
-                          'bio': 'Tweets renders'},
-          '@Neopork85': {'real_name': '',
-                          'triggers': spacex_mentions|starship|spacexthings|bocachica,
-                          'retweets': False,
-                          'replies': False,
-                          'bio': 'Tweets renders'},
-          '@DStarship3': {'real_name': '',
-                          'triggers': spacex_mentions|starship|spacexthings,
-                          'retweets': False,
-                          'replies': False,
-                          'bio': 'Tweets 3D models'},
-          '@RGVaerialphotos': {'real_name': '',
-                          'triggers': spacex_mentions|starship|spacexthings|bocachica,
-                          'retweets': False,
-                          'replies': False,
-                          'bio': 'Tweets aerials'},
-          '@EmreKelly': {'real_name': 'Emre Kelly',
-                         'triggers': spacex_mentions|spacexthings|starship|elon_mentions,
-                         'retweets': False,
-                         'replies': False,
-                         'bio': 'Space reporter @Florida_today & @usatoday'},
-          '@SpaceTeam': {'real_name': 'Space Team',
-                         'triggers': spacex_mentions|spacexthings|starship|elon_mentions,
-                         'retweets': False,
-                         'replies': False,
-                         'bio': 'Reporting for @Florida_today on the space industry'},
-          '@AstroBehnken': {'real_name': 'Bob Behnken',
-                            'triggers': spacex_mentions|spacexthings|elon_mentions,
-                            'retweets': False,
-                            'replies': True,
-                            'bio': 'Astronaut slated for DM-2'},
-          'Astro_Doug': {'real_name': 'Doug Hurley',
-                         'triggers': spacex_mentions|spacexthings|elon_mentions,
-                         'retweets': False,
-                         'replies': True,
-                         'bio': 'Astronaut slated for DM-2'},
-          '@fael097': {'real_name': 'Rafael Adamy',
-                       'triggers': spacex_mentions|spacexthings,
-                       'retweets': False,
-                       'replies': False,
-                       'bio': 'builds SNX diagrams'},
-         }
+people = {
+    '@elonmusk': {
+        'real_name':'Elon Musk',
+        'triggers': starbase|spacexthings|spacecraft|space|spacex_mentions|nasa_mentions,
+        'replies': True,
+        'bio': 'the one and only'
+     },
+    '@bocachicagal': {
+        'real_name':'Mary',
+        'triggers': testing|starbase,
+        'bio': 'posts updates on tests'
+     },
+    '@RGVReagan': {
+        'real_name': 'Mark Reagan',
+        'triggers': spacex_mentions|starbase|elon_mentions,
+        'replies': True,
+        'bio': 'journalist with @Brownsvillenews'
+    },
+    '@SpacePadreIsle': {
+        'real_name': 'Spadre',
+        'triggers': spacex_mentions|starbase|testing,
+        'bio': 'spadre surfing'
+    },
+    '@SpaceX': {
+        'real_name': 'Space Exploration Technologies',
+        'triggers': set(),
+        'replies': True,
+        'bio': 'the big one'
+    },
+    '@austinbarnard45': {
+        'real_name': 'Austin Barnard',
+        'triggers': testing|starbase,
+        'bio': 'Local who takes pictures and streams sometimes'
+    },
+    '@bluemoondance74': {
+        'real_name': 'Reagan Beck',
+        'triggers': {'spacextests','#spacextests'}, 
+        'bio': 'Lives near McGregor test facility'
+    },
+    '@Teslarati': {
+        'real_name': 'Teslarati',
+        'triggers': spacexthings|starbase|nasa_mentions|spacex_mentions,
+        'replies': True,
+        'bio': 'News'
+    },
+    '@Erdayastronaut': {
+        'real_name': 'Tim Dodd',
+        'triggers': spacexthings|starbase,
+        'bio': 'Space Youtuber'
+    },
+    '@SciGuySpace': {
+        'real_name': 'Eric Berger',
+        'triggers': spacexthings|spacex_mentions|elon_mentions|starbase,
+        'bio': 'Senior Space Editor at Ars Technica'
+    },
+    '@_brendan_lewis': {
+        'real_name': 'Brendan',
+        'triggers': spacex_mentions|starbase|spacexthings,
+        'bio': 'Tweets diagrams'
+    },
+    '@TrevorMahlmann': {
+        'real_name': '',
+        'triggers': spacex_mentions|starbase|spacexthings,
+        'bio': 'Tweets photos'
+    },
+    '@ErcXspace': {
+        'real_name': '',
+        'triggers': spacex_mentions|starbase|spacexthings,
+        'bio': 'Tweets renders'
+    },
+    '@Neopork85': {
+        'real_name': '',
+        'triggers': spacex_mentions|starbase|spacexthings,
+        'bio': 'Tweets renders'
+    },
+    '@DStarship3': {
+        'real_name': '',
+        'triggers': spacex_mentions|starbase|spacexthings,
+        'bio': 'Tweets 3D models'
+    },
+    '@RGVaerialphotos': {
+        'real_name': '',
+        'triggers': spacex_mentions|starbase|spacexthings,
+        'bio': 'Tweets aerials'
+    },
+    '@EmreKelly': {
+        'real_name': 'Emre Kelly',
+        'triggers': spacex_mentions|spacexthings|starbase|elon_mentions,
+        'bio': 'Space reporter @Florida_today & @usatoday'
+    },
+    '@fael097': {
+        'real_name': 'Rafael Adamy',
+        'triggers': spacex_mentions|spacexthings,
+        'bio': 'builds SNX diagrams'
+    },
+    '@NASASpaceflight': {
+        'real_name': 'Chris B',
+        'triggers': spacex_mentions|spacexthings|starship,
+        'bio': 'Runs nasa spaceflight'
+    },
+}
 
 def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
         
@@ -245,10 +261,11 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
     for person, userdat in people.items():
 
         # load all eligible tweets
+        do_replies = userdat.get('replies', False)
         user_tweets = api.GetUserTimeline(
             screen_name=person, 
             include_rts=userdat.get('retweets', False), 
-            exclude_replies=(not userdat.get('replies', False)),
+            exclude_replies=(not do_replies),
             count=20
         )
 
@@ -264,43 +281,63 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
 
             # if tweet is a reply:
             # check whether the reply is in response to a matching tweet
-            if userdat['replies']:
+            if do_replies:
                 try:
-                    original_tweet = api.GetStatus(tweet.in_reply_to_status_id).full_text if tweet.in_reply_to_status_id else ''
-                    reply_to_parsed = parseTweet(original_tweet)
+                    original_tweet = api.GetStatus(tweet.in_reply_to_status_id) if tweet.in_reply_to_status_id else None
                 except: # if orig. tweet is missing
-                    reply_to_parsed = set()
+                    original_tweet = None
             else:
-                reply_to_parsed = set()
+                original_tweet = None
 
-            # parse tweet and evaluate matches
-            tweet_parsed = parseTweet(tweet.full_text)
-            tweet_triggers = tweet_parsed & userdat['triggers']
-            reply_triggers = reply_to_parsed & userdat['triggers'] # if thread is under valid trigger
+            # search for tweet matches
+            match_terms = userdat['triggers']
+            tweet_match = matchTweet(tweet, match_terms) 
+            orig_match = matchTweet(original_tweet, match_terms)
+            is_match = any([
+                bool(tweet_match),
+                bool(orig_match),
+                not match_terms, # empty terms match any tweet
+            ])
 
             # trigger a notification if match
-            # empty trigger sets are configured to match any tweets
-            if any([tweet_triggers, reply_triggers, not userdat['triggers']]):
+            if is_match:
                 
                 # format and ship tweet and data
                 tweet_url = formatTweetURL(person, tweet.id_str)
-                clean_text = re.split('https://t.co', tweet.full_text, maxsplit=1)[0].strip() # rm twitter URLs; prevents Slack from double-preview
+
+                # rm twitter URLs; prevents Slack from double-preview
+                clean_text = re.split(
+                    'https://t.co', 
+                    tweet.full_text, 
+                    maxsplit=1
+                )
+                clean_text = clean_text[0].strip() 
+
+                # format pushed message
                 person_name = tweet.user.name
                 send_text = f'//{person_name}// {clean_text} {tweet_url}'
 
-                # send Slack post
-                requests.post(url=keys['slack']['webhook'], 
-                             data=json.dumps({'text':send_text}))            
-                # send Discord post
+                # push Slack post
+                requests.post(
+                    url=keys['slack']['webhook'], 
+                    data=json.dumps({'text':send_text})
+                ) 
+                # push Discord post
                 #requests.post(url=keys['discord']['webhook'],
                 #              data=json.dumps({'content':send_text}))
 
+                # log match data 
                 seen_tweets.append(tweet.id_str)
-                log_file += f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) | tweet triggers: {tweet_triggers} | reply triggers: {reply_triggers} | tweet_age: {tweet_age}\n'
+                log_file += (
+                    f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) '
+                    f'| tweet matches: {tweet_match[0]} '
+                    f'| orig. tweet matches: {orig_match[0]} '
+                    f'| tweet_age: {tweet_age}\n'
+                )
     
+    # add final report to log file
     log_file += f'{datetime.now().__str__()}\t\tcompleted search\n'
-
     closeSession(log_file, ' '.join(seen_tweets))
-    
+
 # call the search
 searchTweets()

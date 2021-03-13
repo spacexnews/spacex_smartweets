@@ -65,6 +65,15 @@ def lemmatizeTweet(tweetstring):
     ]
     return lemmas
 
+def matchWords(lemmas, regex):
+    """Iterate through lemmas and look for match."""
+    regex = re.compile(regex)
+    for lemma in lemmas:
+        match = regex.match(lemma)
+        if match: 
+            return match
+    return match 
+
 def matchTweet(tweet, match_terms):
     """Match tweets using regex.
 
@@ -76,15 +85,11 @@ def matchTweet(tweet, match_terms):
         boolean on whether a match
     """
     if tweet is None:
-        return re.match('.', '') # empty match
+        return None 
     tweet_lemmas = lemmatizeTweet(tweet.full_text)
-    tweet_str = ' '.join(tweet_lemmas)
     match_pattern = '|'.join(match_terms)
-    re_match = re.match(
-        match_pattern,
-        tweet_str
-    )
-    return re_match
+    re_match = matchWords(tweet_lemmas, match_pattern)
+    return re_match 
 
 def formatTweetURL(user, status_id):
     """Returns formatted URL for tweets."""
@@ -243,7 +248,7 @@ people = {
     },
     '@NASASpaceflight': {
         'real_name': 'Chris B',
-        'triggers': spacex_mentions|spacexthings|starship,
+        'triggers': spacex_mentions|starship|models,
         'bio': 'Runs nasa spaceflight'
     },
 }
@@ -328,6 +333,8 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
 
                 # log match data 
                 seen_tweets.append(tweet.id_str)
+                tweet_match = tweet_match or ['']
+                orig_match = orig_match or ['']
                 log_file += (
                     f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) '
                     f'| tweet matches: {tweet_match[0]} '

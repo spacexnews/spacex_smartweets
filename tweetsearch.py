@@ -99,8 +99,8 @@ def formatTweetURL(user, status_id):
 # Terms support regex pattern matching
 # NB: all tweet strings are lowercased for matching
 starship = {
-    'starship', 'hopper', 'superheavy', 
-    'starhopper', 'raptor', 
+    'starship', 'sn\d+', 'bn\d+', 'superheavy', 
+    'hopper', 'starhopper', 'raptor', 
     'tether', 'dome', 'weld', 'barrel',
     'flight', '301', 'cryogenic', 'cryo',
     'bulkhead',
@@ -125,9 +125,8 @@ spacexthings = {
     'falcon', 'merlin', 'ocisly', 'octagrabber', 'octograbber',
     'jrti', 'droneship', 'starlink', '39a', 'dragon', 'draco', 'superdraco',
 }
-models = {'sn\d+', 'bn\d+'}
 missions = {'dearmoon', 'dear moon'}
-spacexthings |= models|missions
+spacexthings |= missions
 
 space = {
     'space', 'mars', 'orbit', 'orbital', 'flight', 
@@ -208,32 +207,38 @@ people = {
     },
     '@_brendan_lewis': {
         'real_name': 'Brendan',
-        'triggers': spacex_mentions|starbase|spacexthings,
+        'triggers': spacex_mentions|starbase,
+        'media': True,
         'bio': 'Tweets diagrams'
     },
     '@TrevorMahlmann': {
         'real_name': '',
         'triggers': spacex_mentions|starbase|spacexthings,
+        'media': True,
         'bio': 'Tweets photos'
     },
     '@ErcXspace': {
         'real_name': '',
-        'triggers': spacex_mentions|starbase|spacexthings,
+        'triggers': spacex_mentions|starbase,
+        'media': True,
         'bio': 'Tweets renders'
     },
     '@Neopork85': {
         'real_name': '',
-        'triggers': spacex_mentions|starbase|spacexthings,
+        'triggers': spacex_mentions|starbase,
+        'media': True,
         'bio': 'Tweets renders'
     },
     '@DStarship3': {
         'real_name': '',
-        'triggers': spacex_mentions|starbase|spacexthings,
+        'triggers': starship,
+        'media': True,
         'bio': 'Tweets 3D models'
     },
     '@RGVaerialphotos': {
         'real_name': '',
         'triggers': spacex_mentions|starbase|spacexthings,
+        'media': True,
         'bio': 'Tweets aerials'
     },
     '@EmreKelly': {
@@ -248,8 +253,14 @@ people = {
     },
     '@NASASpaceflight': {
         'real_name': 'Chris B',
-        'triggers': spacex_mentions|starship|models,
+        'triggers': spacex_mentions|starship,
         'bio': 'Runs nasa spaceflight'
+    },
+    '@C_Bass3d': {
+        'real_name': 'Corey',
+        'triggers': starship,
+        'media': True,
+        'bio': '3D models'
     },
 }
 
@@ -281,7 +292,7 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
             now = datetime.now(tz=pytz.utc) 
             tweet_time = datetime.strptime(tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y').replace(tzinfo=pytz.utc)	
             tweet_age = (now - tweet_time).total_seconds()
-            if tweet.id_str in seen_tweets or tweet_age > 1800:
+            if tweet.id_str in seen_tweets or tweet_age > 4000:
                 continue
 
             # if tweet is a reply:
@@ -298,10 +309,15 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
             match_terms = userdat['triggers']
             tweet_match = matchTweet(tweet, match_terms) 
             orig_match = matchTweet(original_tweet, match_terms)
+            match_media = (
+                userdat.get('media', False)
+                and bool(getattr(tweet, 'media', False))
+            )
             is_match = any([
                 bool(tweet_match),
                 bool(orig_match),
                 not match_terms, # empty terms match any tweet
+                match_media,
             ])
 
             # trigger a notification if match
@@ -319,8 +335,9 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 clean_text = clean_text[0].strip() 
 
                 # format pushed message
+                match = tweet_match or orig_match or ['']
                 person_name = tweet.user.name
-                send_text = f'//{person_name}// {clean_text} {tweet_url}'
+                send_text = f'//{person_name}// {clean_text} [trigger: {match[0]}] {tweet_url}'
 
                 # push Slack post
                 requests.post(
@@ -332,13 +349,14 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 #              data=json.dumps({'content':send_text}))
 
                 # log match data 
-                seen_tweets.append(tweet.id_str)
                 tweet_match = tweet_match or ['']
                 orig_match = orig_match or ['']
+                seen_tweets.append(tweet.id_str)
                 log_file += (
                     f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) '
                     f'| tweet matches: {tweet_match[0]} '
                     f'| reply matches: {orig_match[0]} '
+                    f'| media match: {match_media} '
                     f'| tweet_age: {tweet_age}\n'
                 )
     

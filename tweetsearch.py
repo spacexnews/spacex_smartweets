@@ -141,7 +141,7 @@ people = {'@elonmusk':{'real_name':'Elon Musk',
                           'replies': True,
                           'bio': 'journalist with @Brownsvillenews'},
           '@SpacePadreIsle': {'real_name': 'Spadre',
-                              'triggers': spacex_mentions|starship|testing,
+                              'triggers': spacex_mentions|starship|testing|bocachica,
                               'retweets': False,
                               'replies': False,
                               'bio': 'spadre surfing'},
@@ -263,13 +263,12 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 continue
 
             # if tweet is a reply:
-            # check whether the reply is in response to a tweet
-            # with matching terms
+            # check whether the reply is in response to a matching tweet
             if userdat['replies']:
                 try:
-                    tweet_reply = api.GetStatus(tweet.in_reply_to_status_id).full_text if tweet.in_reply_to_status_id else ''
-                    reply_to_parsed = parseTweet(tweet_reply)
-                except: # if prompty tweet is missing
+                    original_tweet = api.GetStatus(tweet.in_reply_to_status_id).full_text if tweet.in_reply_to_status_id else ''
+                    reply_to_parsed = parseTweet(original_tweet)
+                except: # if orig. tweet is missing
                     reply_to_parsed = set()
             else:
                 reply_to_parsed = set()

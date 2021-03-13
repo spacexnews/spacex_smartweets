@@ -336,8 +336,10 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
 
                 # format pushed message
                 match = tweet_match or orig_match or ['']
+                if not match[0] and match_media:
+                    match = ['MEDIA']
                 person_name = tweet.user.name
-                send_text = f'//{person_name}// {clean_text} [trigger: {match[0]}] {tweet_url}'
+                send_text = f'//{person_name}// {clean_text} [match: {match[0]}] {tweet_url}'
 
                 # push Slack post
                 requests.post(

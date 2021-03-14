@@ -107,6 +107,7 @@ starship = {
 bocachica = {
     'bay', 'highbay', 'midbay',
     'boca', 'chica', 'starbase', 
+    'shipyard'
 }
 
 starbase = starship | bocachica
@@ -175,6 +176,7 @@ people = {
     '@SpaceX': {
         'real_name': 'Space Exploration Technologies',
         'triggers': set(),
+        'all_tweets': True,
         'replies': True,
         'bio': 'the big one'
     },
@@ -206,7 +208,7 @@ people = {
     },
     '@_brendan_lewis': {
         'real_name': 'Brendan',
-        'triggers': spacex_mentions|starbase,
+        'triggers': starbase,
         'media': True,
         'bio': 'Tweets diagrams'
     },
@@ -218,21 +220,21 @@ people = {
     },
     '@ErcXspace': {
         'real_name': '',
-        'triggers': spacex_mentions|starbase,
+        'triggers': starbase,
         'media': True,
         'bio': 'Tweets renders'
     },
     '@Neopork85': {
         'real_name': '',
-        'triggers': spacex_mentions|starbase,
+        'triggers': starbase,
         'media': True,
         'bio': 'Tweets renders'
     },
-    '@DStarship3': {
-        'real_name': '',
+    '@C_Bass3d': {
+        'real_name': 'Corey',
         'triggers': starship,
         'media': True,
-        'bio': 'Tweets 3D models'
+        'bio': '3D models'
     },
     '@RGVaerialphotos': {
         'real_name': '',
@@ -247,19 +249,24 @@ people = {
     },
     '@fael097': {
         'real_name': 'Rafael Adamy',
-        'triggers': spacex_mentions|spacexthings,
+        'triggers': starbase,
         'bio': 'builds SNX diagrams'
     },
     '@NASASpaceflight': {
         'real_name': 'Chris B',
-        'triggers': spacex_mentions|starship,
-        'bio': 'Runs nasa spaceflight'
+        'triggers': starbase,
+        'bio': 'Runs Nasaspaceflight'
     },
-    '@C_Bass3d': {
-        'real_name': 'Corey',
-        'triggers': starship,
+    '@nextspaceflight': {
+        'real_name': 'Michael Baylor',
+        'triggers': starbase,
+        'bio': 'Works for Nasaspaceflight'
+    },
+    '@TheFavoritist': {
+        'real_name': 'Brady Kenniston',
+        'triggers': starbase,
         'media': True,
-        'bio': '3D models'
+        'bio': 'Works for Nasaspaceflight'
     },
 }
 
@@ -312,10 +319,11 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 userdat.get('media', False)
                 and bool(getattr(tweet, 'media', False))
             )
+            match_alltweets = userdat.get('all_tweets', False)
             is_match = any([
                 bool(tweet_match),
                 bool(orig_match),
-                not match_terms, # empty terms match any tweet
+                match_alltweets,
                 match_media,
             ])
 
@@ -338,7 +346,7 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 if not match[0] and match_media:
                     match = ['MEDIA']
                 person_name = tweet.user.name
-                send_text = f'//{person_name}// {clean_text} [match: {match[0]}] {tweet_url}'
+                send_text = f'`• {person_name} •`\n{clean_text}\n{tweet_url} "_{match[0]}_"'
 
                 # push Slack post
                 requests.post(

@@ -101,7 +101,7 @@ def formatTweetURL(user, status_id):
 starship = {
     'starship', 'sn\d+', 'bn\d+', 
     'superheavy', 'raptor', 'bellyflop'
-    'hopper', 
+    'hopper', 'tps'
 } 
 
 bocachica = {
@@ -212,12 +212,12 @@ people = {
         'media': True,
         'bio': 'Tweets diagrams'
     },
-    '@TrevorMahlmann': {
-        'real_name': '',
-        'triggers': spacex_mentions|starbase|spacexthings,
-        'media': True,
-        'bio': 'Tweets photos'
-    },
+#    '@TrevorMahlmann': {
+#        'real_name': '',
+#        'triggers': spacex_mentions|starbase|spacexthings,
+#        'media': True,
+#        'bio': 'Tweets photos'
+#    },
     '@ErcXspace': {
         'real_name': '',
         'triggers': starbase,
@@ -265,9 +265,20 @@ people = {
     '@TheFavoritist': {
         'real_name': 'Brady Kenniston',
         'triggers': starbase,
-        'media': True,
         'bio': 'Works for Nasaspaceflight'
     },
+    '@thejackbeyer': {
+        'real_name': 'Jack Beyer',
+        'triggers': starbase,
+        'bio': 'Works for Nasaspaceflight'
+    },
+    '@BocaRoad': {
+        'real_name': '',
+        'triggers': {'closure'},
+        'all_tweets': True,
+        'bio': 'Posts road closures'
+    },
+
 }
 
 def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
@@ -296,7 +307,8 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
 
             # skip seen tweets or those older than 30 mins (1800 secs)
             now = datetime.now(tz=pytz.utc) 
-            tweet_time = datetime.strptime(tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y').replace(tzinfo=pytz.utc)	
+            tweet_time = datetime.strptime(tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y')\
+                .replace(tzinfo=pytz.utc)	
             tweet_age = (now - tweet_time).total_seconds()
             if tweet.id_str in seen_tweets or tweet_age > 4000:
                 continue
@@ -346,7 +358,19 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 if not match[0] and match_media:
                     match = ['MEDIA']
                 person_name = tweet.user.name
+                
                 send_text = f'`• {person_name} •`\n{clean_text}\n{tweet_url} "_{match[0]}_"'
+
+                # add original tweet if the tweet is a reply to an unseen other tweet
+                if orig_match and (original_tweet.id_str not in seen_tweets):
+                    orig_name = original_tweet.user.name
+                    orig_text = original_tweet.full_text
+                    send_text = (
+                        f'`• {orig_name} •`\n{orig_text}\n'
+                        '|\n'
+                        '|\n'
+                        '|\n'
+                    ) + send_text
 
                 # push Slack post
                 requests.post(

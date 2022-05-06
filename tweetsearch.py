@@ -452,13 +452,18 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                     ) + send_text
 
                 # push Slack post
-                requests.post(
-                    url=keys['slack']['webhook'], 
-                    data=json.dumps({'text':send_text})
-                ) 
+                if 'slack' in keys:
+                    requests.post(
+                        url=keys['slack']['webhook'],
+                        data=json.dumps({'text': send_text}),
+                    )
+
                 # push Discord post
-                #requests.post(url=keys['discord']['webhook'],
-                #              data=json.dumps({'content':send_text}))
+                if 'discord' in keys:
+                    requests.post(
+                        url=keys['discord']['webhook'],
+                        json={'content': send_text},
+                    )
 
                 # log match data
                 tweet_match = tweet_match or ['']

@@ -372,12 +372,19 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
     for person, userdat in people.items():
         # load all eligible tweets
         do_replies = userdat.get('replies', False)
-        user_tweets = api.GetUserTimeline(
-            screen_name=person, 
-            include_rts=userdat.get('retweets', False), 
-            exclude_replies=(not do_replies),
-            count=20
-        )
+        try:
+            user_tweets = api.GetUserTimeline(
+                screen_name=person,
+                include_rts=userdat.get('retweets', False),
+                exclude_replies=(not do_replies),
+                count=20,
+            )
+        except Exception:
+            log_file += (
+                f'{datetime.now().__str__()}\t\tunable to read timeline for {person}\n'
+            )
+
+            continue
 
         # scan tweets for matches
         for tweet in user_tweets:

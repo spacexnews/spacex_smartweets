@@ -342,6 +342,20 @@ people = {
         'all_tweets': True,
         'bio': 'Posts road closures',
     },
+    '@BocachicaMaria1': {
+        'real_name': 'Maria Pointer',
+        'triggers': spacex_mentions
+        | starship
+        | bocachica
+        | spacexthings
+        | elon_mentions,
+        'retweets': False,
+        'replies': True,
+        'bio': (
+            'BocaChicaMaria, not BocaChicaGal. Having fun documenting SpaceX. '
+            '1st neighbor out our back door.'
+        ),
+    },
 }
 
 

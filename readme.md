@@ -39,8 +39,14 @@ A simple tweet processor for automatically and intelligently sorting tweets rela
 
     `poetry run python tweetsearch.py`
 
-2. Or you can run it on a schedule with a cron task such as (insert the following into your Cron file):
+2. Or you can run it on a schedule with a cron task such as (insert the following into your Cron file using `crontab -e`):
 
-    `*/2 * * * * cd /path/to/home/github/spacex_smartweets && /path/to/python ./tweetsearch.py`
+    ```crontab
+    PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/path/to/home/.poetry/bin
+
+    */2 * * * * cd /path/to/home/github/spacex_smartweets && poetry run python tweetsearch.py
+    ```
+
+    Remember to have `/path/to/home/.poetry/bin`, and where `python3` resides in the PATH inside the crontab.
 
     NOTE: The above cron task will run every 2 minutes

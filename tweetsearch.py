@@ -249,6 +249,11 @@ people = {
         'triggers': testing | starbase,
         'bio': 'Local who takes pictures and streams sometimes',
     },
+    '@bluemoondance74': {
+        'real_name': 'Reagan Beck',
+        'triggers': spacex_mentions | mcgregor,
+        'bio': 'Lives near McGregor test facility',
+    },
     '@Teslarati': {
         'real_name': 'Teslarati',
         'triggers': spacexthings | starbase | nasa_mentions | spacex_mentions,

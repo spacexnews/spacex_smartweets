@@ -356,6 +356,31 @@ people = {
             '1st neighbor out our back door.'
         ),
     },
+    '@planet4589': {
+        'real_name': 'Jonathan McDowell',
+        'all_tweets': True,
+        'bio': 'Orbital Police',
+    },
+    '@cnunezimages': {
+        'real_name': 'StarbaseSurfer',
+        'triggers': spacex_mentions
+        | starship
+        | bocachica
+        | spacexthings
+        | elon_mentions,
+        'media': True,
+        'bio': 'Starbase photographer',
+    },
+    '@NicAnsuini': {
+        'real_name': 'Nic Ansuini',
+        'triggers': spacex_mentions
+        | starship
+        | bocachica
+        | spacexthings
+        | elon_mentions,
+        'media': True,
+        'bio': 'Photojournalist for NASASpaceflight.com',
+    },
 }
 
 

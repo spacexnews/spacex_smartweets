@@ -5,3 +5,4 @@ keys.json
 log.txt
 seen_tweets.txt
 .ipynb_checkpoints
+.seen_tweets_cache/

@@ -1,10 +1,14 @@
 # Standard Library
 from datetime import datetime
 import json
+import logging
+import logging.config
 import os
 import re
 
 # Third-party
+from diskcache import Cache
+
 # NLP tools
 import nltk
 from nltk.corpus import wordnet
@@ -13,37 +17,63 @@ import pytz
 import requests
 import twitter
 
+MAX_TWEET_AGE = 60 * 60
+"""Maximum age of tweets to look at in seconds"""
+
+SPACEX_DIR = os.path.dirname(__file__)
+"""Directory to save logs and caches"""
+
+MAX_LOG_SIZE = 2**20
+"""Max size of log file before rotation in bytes"""
+
+MAX_LOG_FILES = 5
+"""Max number of log files to keep"""
+
+
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "simple": {"format": "%(asctime)s - %(levelname)s - %(message)s"}
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "level": "DEBUG",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout",
+            },
+            "file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "level": "DEBUG",
+                "formatter": "simple",
+                "filename": "smartweets.log",
+                "maxBytes": MAX_LOG_SIZE,
+                "backupCount": MAX_LOG_FILES,
+            },
+        },
+        "root": {"level": "DEBUG", "handlers": ["console", "file"]},
+    }
+)
+
+logger = logging.getLogger()
+
 lemma = WordNetLemmatizer()
 
 # NB: splits off #s and @s; otherwise, use TweetTokenizer().tokenize
 tokenizer = nltk.word_tokenize
 
-spacexdir = os.path.dirname(__file__)
-keys = os.path.join(spacexdir, 'keys.json')
-seentweets = os.path.join(spacexdir, 'seen_tweets.txt')
-log = os.path.join(spacexdir, 'log.txt')
+
+keys = os.path.join(SPACEX_DIR, 'keys.json')
 
 # get authorization keys
 with open(keys, 'r') as infile:
     keys = json.load(infile)
 
-# get last collected tweets
-with open(seentweets, 'r') as infile:
-    seen_tweets = infile.read().split()
-
-with open(log, 'r') as infile:
-    log_file = infile.read()
-
 # instance Twitter-API
 api = twitter.Api(**keys['twitter'], tweet_mode='extended')
 
-
-def closeSession(log_file, seen_tweets):
-    """Write final files."""
-    with open(log, 'w') as outfile:
-        outfile.write(log_file)
-    with open(seentweets, 'w') as outfile:
-        outfile.write(seen_tweets)
+seen_cache = Cache(os.path.join(SPACEX_DIR, '.seen_tweets_cache'))
 
 
 def get_wordnet_pos(word):
@@ -384,15 +414,16 @@ people = {
 }
 
 
-def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
+def searchTweets():
 
     # check network connection
     try:
         requests.get('http://x.com')  # Elon's tiny website :)
-    except requests.ConnectionError:
-        log_file += f'{datetime.now().__str__()}\t\tno connection\n'
-        closeSession(log_file, ' '.join(seen_tweets))
+    except requests.ConnectionError as e:
+        logger.error('No Connection', e)
         return None
+
+    seen_cache.expire()
 
     for person, userdat in people.items():
         # load all eligible tweets
@@ -404,22 +435,19 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 exclude_replies=(not do_replies),
                 count=20,
             )
-        except Exception:
-            log_file += (
-                f'{datetime.now().__str__()}\t\tunable to read timeline for {person}\n'
-            )
-
+        except Exception as e:
+            logger.error(f'Unable to read timeline for {person}', e)
             continue
 
         # scan tweets for matches
         for tweet in user_tweets:
-            # skip seen tweets or those older than 30 mins (1800 secs)
+            # skip seen tweets or those older than {MAX_TWEET_AGE}
             now = datetime.now(tz=pytz.utc)
             tweet_time = datetime.strptime(
                 tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y'
             ).replace(tzinfo=pytz.utc)
             tweet_age = (now - tweet_time).total_seconds()
-            if tweet.id_str in seen_tweets or tweet_age > 4000:
+            if tweet.id_str in seen_cache or tweet_age > MAX_TWEET_AGE:
                 continue
 
             # if tweet is a reply:
@@ -476,7 +504,7 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 )
 
                 # add original tweet if the tweet is a reply to an unseen other tweet
-                if orig_match and (original_tweet.id_str not in seen_tweets):
+                if orig_match and (original_tweet.id_str not in seen_cache):
                     orig_name = original_tweet.user.name
                     orig_text = original_tweet.full_text
                     send_text = (
@@ -500,18 +528,17 @@ def searchTweets(log_file=log_file, seen_tweets=seen_tweets):
                 # log match data
                 tweet_match = tweet_match or ['']
                 orig_match = orig_match or ['']
-                seen_tweets.append(tweet.id_str)
-                log_file += (
-                    f'{datetime.now().__str__()}\t\ttrigger {tweet.id_str} ({person} ) '
+                seen_cache.add(tweet.id_str, tweet_age, expire=MAX_TWEET_AGE)
+                logger.info(
+                    f'trigger {tweet.id_str} ({person} ) '
                     f'| tweet matches: {tweet_match[0]} '
                     f'| reply matches: {orig_match[0]} '
                     f'| media match: {match_media} '
                     f'| tweet_age: {tweet_age}\n'
                 )
 
-    # add final report to log file
-    log_file += f'{datetime.now().__str__()}\t\tcompleted search\n'
-    closeSession(log_file, ' '.join(seen_tweets))
+    logger.debug('Completed search')
+    seen_cache.close()
 
 
 # call the search

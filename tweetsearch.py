@@ -388,6 +388,7 @@ people = {
     },
     '@planet4589': {
         'real_name': 'Jonathan McDowell',
+        'triggers': set(),
         'all_tweets': True,
         'bio': 'Orbital Police',
     },

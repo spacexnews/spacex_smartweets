@@ -10,6 +10,7 @@ python = "^3.7"
 python-twitter = "^3.5"
 pytz = "^2022.1"
 nltk = "^3.7"
+diskcache = "^5.4.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^4.0.1"

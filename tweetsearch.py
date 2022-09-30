@@ -306,12 +306,6 @@ people = {
         'media': True,
         'bio': 'Tweets diagrams',
     },
-    #    '@TrevorMahlmann': {
-    #        'real_name': '',
-    #        'triggers': spacex_mentions|starbase|spacexthings,
-    #        'media': True,
-    #        'bio': 'Tweets photos'
-    #    },
     '@ErcXspace': {
         'real_name': '',
         'triggers': starbase,

@@ -497,19 +497,19 @@ def searchTweets():
                 # format and ship tweet and data
                 tweet_url = formatTweetURL(person, tweet.id_str)
 
-                # rm twitter URLs; prevents Slack from double-preview
-                clean_text = re.split('https://t.co', tweet.full_text, maxsplit=1)
-                clean_text = clean_text[0].strip()
-
                 # format pushed message
-                match = tweet_match or orig_match or ['']
-                if not match[0] and match_media:
-                    match = ['MEDIA']
+                if tweet_match and tweet_match[0]:
+                    trigger = f' __**{tweet_match[0]}**__'
+                elif orig_match and orig_match[0]:
+                    trigger = f' __**{orig_match[0]}**__'
+                elif match_media:
+                    trigger = ' __**media**__'
+                else:
+                    trigger = ''
+
                 person_name = tweet.user.name
 
-                send_text = (
-                    f'`• {person_name} •`\n{clean_text}\n{tweet_url} "_{match[0]}_"'
-                )
+                send_text = f'{tweet_url}{trigger}'
 
                 # add original tweet if the tweet is a reply to an unseen other tweet
                 if orig_match and (original_tweet.id_str not in seen_cache):

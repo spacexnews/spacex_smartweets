@@ -530,7 +530,7 @@ def searchTweets():
                 if 'discord' in keys:
                     requests.post(
                         url=keys['discord']['webhook'],
-                        json={'content': send_text},
+                        json={'content': send_text, 'username': person_name},
                     )
 
                 # log match data

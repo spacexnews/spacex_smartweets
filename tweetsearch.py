@@ -442,6 +442,11 @@ def searchTweets():
             logger.error(f'Unable to read timeline for {person}', e)
             continue
 
+        user_tweets.sort(
+            key=lambda tweet: datetime.strptime(
+                tweet.created_at, '%a %b %d %H:%M:%S +0000 %Y'
+            )
+        )
         # scan tweets for matches
         for tweet in user_tweets:
             # skip seen tweets or those older than {MAX_TWEET_AGE}

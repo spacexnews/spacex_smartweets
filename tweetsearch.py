@@ -406,6 +406,14 @@ people = {
         'media': True,
         'bio': 'Photojournalist for NASASpaceflight.com',
     },
+    '@LabPadre': {
+        'real_name': 'LabPadre',
+        'bio': 'LabPadre',
+        'triggers': set(),
+        'all_tweets': True,
+        'retweets': True,
+        'replies': True,
+    },
 }
 
 

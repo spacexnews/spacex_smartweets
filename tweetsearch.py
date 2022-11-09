@@ -414,6 +414,12 @@ people = {
         'retweets': True,
         'replies': True,
     },
+    '@SpmtTracker': {
+        'real_name': 'Starbase SPMT Tracker',
+        'bio': 'Tracks SPMTs',
+        'triggers': set(),
+        'all_tweets': True
+    },
 }
 
 
